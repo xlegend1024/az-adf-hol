@@ -1,0 +1,40 @@
+# This is 2nd script
+# if you have not run '0. Set Sub and pwd.azcli' please do now before you run this
+
+# get subscruption ID
+subId=$(az account show --output tsv --query [id])
+sleep 1
+# get tenant ID 
+tenantId=$(az account show --output tsv --query [tenantId])
+sleep 1
+# set resource group name
+# if you have exsiting one please use the one
+rgName=dev-$RANDOM-rg #Save it as ps1
+# set azure region
+loc=eastus2
+# set blob name that should be unique 
+blobName=azblobdev$RANDOM # It will be saved it in parameter file
+# set container name that will be created in Blob
+containerName=sampledata
+# set SQL Server (Instance) name
+sqlsvrName=dev$RANDOM # It will be saved it in parameter file
+# DO NOT CHANGE
+sqldbName=wwimdb
+# DO NOT CHANGE
+sqladm=sqladmin
+# set ADF name
+adfName=adfv2dev$RANDOM # It will be saved it in parameter file
+
+# Service Principal Name you can change
+spName=adf-hol-sp
+
+# set container name for U-SQL script
+containerName2=scripts
+
+# Tag you can add or remove
+myTags="Env=HandsonLab"
+
+# Create ADF directories on your local machine or Cloud Shell
+mkdir $HOME/clouddrive/
+mkdir $HOME/clouddrive/1.ADF/
+
