@@ -4,8 +4,10 @@ Author: Hyun S. Shin
 
 ## Azure Data Factory hands on lab
 
-You can run this command from cloud shell on your browser
-Chrome is recommended to copy and pate folling scripts 
+You can run this command from cloud shell on your browser to start lab environment set up.
+
+Chrome is recommended to copy and pate folling scripts.
+
 Copy following command.
 
 ```cli
