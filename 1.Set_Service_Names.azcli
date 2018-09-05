@@ -11,7 +11,7 @@ sleep 1
 # if you have exsiting one please use the one
 rgName=dev-$RANDOM-rg #Save it as ps1
 # set azure region
-loc=eastus2
+loc=westus
 # set blob name that should be unique 
 blobName=blobdev$RANDOM # It will be saved it in parameter file
 # set container name that will be created in Blob
