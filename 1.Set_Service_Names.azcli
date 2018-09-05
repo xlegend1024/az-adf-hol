@@ -18,12 +18,10 @@ blobName=blobdev$RANDOM # It will be saved it in parameter file
 containerName=sampledata
 # set SQL Server (Instance) name
 sqlsvrName=dev$RANDOM # It will be saved it in parameter file
-# DO NOT CHANGE
+# DO NOT CHANGE!!!
 sqldbName=wwimdb
-# DO NOT CHANGE
+# DO NOT CHANGE!!!
 sqladm=sqladmin
-# set ADF name
-adfName=adfv2dev$RANDOM # It will be saved it in parameter file
 
 # Service Principal Name you can change
 spName=adf-hol-sp
@@ -42,5 +40,4 @@ echo $blobName
 echo $containerName
 echo $sqlsvrName
 echo $sqladm
-echo $adfName
 echo $spName

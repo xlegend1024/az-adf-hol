@@ -1,0 +1,765 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory Name",
+            "defaultValue": "mtcs-dev-adf-v2"
+        },
+        "wwimdb_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'wwimdb'"
+        },
+        "datablob_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'datablob'"
+        },
+        "DestinationDataset_bpb_properties_typeProperties_fileName": {
+            "type": "string",
+            "defaultValue": "@dataset().cw_fileName"
+        },
+        "DestinationDataset_bpb_properties_typeProperties_folderPath": {
+            "type": "string",
+            "defaultValue": "wwidw"
+        },
+        "out_blob_fct_sales_properties_typeProperties_fileName": {
+            "type": "string",
+            "defaultValue": "[concat('[', 'fact].[sales].txt')]"
+        },
+        "out_blob_fct_sales_properties_typeProperties_folderPath": {
+            "type": "string",
+            "defaultValue": "wwidw"
+        },
+        "out_blob_dim_date_properties_typeProperties_fileName": {
+            "type": "string",
+            "defaultValue": "[concat('[', 'dim].[date].txt')]"
+        },
+        "out_blob_dim_date_properties_typeProperties_folderPath": {
+            "type": "string",
+            "defaultValue": "wwidw"
+        },
+        "out_blob_dim_customer_properties_typeProperties_fileName": {
+            "type": "string",
+            "defaultValue": "[concat('[', 'dim].[customer].txt')]"
+        },
+        "out_blob_dim_customer_properties_typeProperties_folderPath": {
+            "type": "string",
+            "defaultValue": "wwidw"
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/sqldb2blob')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "ForEach_bpb",
+                        "type": "ForEach",
+                        "dependsOn": [],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@pipeline().parameters.cw_items",
+                                "type": "Expression"
+                            },
+                            "activities": [
+                                {
+                                    "name": "Copy_bpb",
+                                    "type": "Copy",
+                                    "dependsOn": [],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false
+                                    },
+                                    "userProperties": [
+                                        {
+                                            "name": "Source",
+                                            "value": "@{item().source.tableName}"
+                                        },
+                                        {
+                                            "name": "Destination",
+                                            "value": "wwidw/@{item().destination.fileName}"
+                                        }
+                                    ],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "SqlSource"
+                                        },
+                                        "sink": {
+                                            "type": "BlobSink"
+                                        },
+                                        "enableStaging": false,
+                                        "dataIntegrationUnits": 0
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "SourceDataset_bpb",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "cw_tableName": "@item().source.tableName"
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "DestinationDataset_bpb",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "cw_fileName": "@item().destination.fileName"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parameters": {
+                    "cw_items": {
+                        "type": "Array",
+                        "defaultValue": [
+                            {
+                                "source": {
+                                    "tableName": "[concat('[', 'Dimension].[Customer]')]"
+                                },
+                                "destination": {
+                                    "fileName": "[concat('[', 'Dimension].[Customer].txt')]"
+                                }
+                            },
+                            {
+                                "source": {
+                                    "tableName": "[concat('[', 'Dimension].[Date]')]"
+                                },
+                                "destination": {
+                                    "fileName": "[concat('[', 'Dimension].[Date].txt')]"
+                                }
+                            },
+                            {
+                                "source": {
+                                    "tableName": "[concat('[', 'Fact].[Sale]')]"
+                                },
+                                "destination": {
+                                    "fileName": "[concat('[', 'Fact].[Sale].txt')]"
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SourceDataset_bpb')]",
+                "[concat(variables('factoryId'), '/datasets/DestinationDataset_bpb')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Copy_sql_blob')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "Copy_cust_sql_blob",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false
+                        },
+                        "userProperties": [
+                            {
+                                "name": "Source",
+                                "value": "[concat('[', 'Dimension].[Customer]')]"
+                            },
+                            {
+                                "name": "Destination",
+                                "value": "wwidw/[dim].[customer].txt"
+                            }
+                        ],
+                        "typeProperties": {
+                            "source": {
+                                "type": "SqlSource"
+                            },
+                            "sink": {
+                                "type": "BlobSink"
+                            },
+                            "enableStaging": false,
+                            "dataIntegrationUnits": 0
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "inp_sqldb_dim_customer",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "out_blob_dim_customer",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Copy_date_sql_blob",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false
+                        },
+                        "userProperties": [
+                            {
+                                "name": "Source",
+                                "value": "[concat('[', 'Dimension].[Date]')]"
+                            },
+                            {
+                                "name": "Destination",
+                                "value": "wwidw/[dim].[date].txt"
+                            }
+                        ],
+                        "typeProperties": {
+                            "source": {
+                                "type": "SqlSource"
+                            },
+                            "sink": {
+                                "type": "BlobSink"
+                            },
+                            "enableStaging": false,
+                            "dataIntegrationUnits": 0
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "inp_slqdb_dim_date",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "out_blob_dim_date",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Copy_sales_sql_blob",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false
+                        },
+                        "userProperties": [
+                            {
+                                "name": "Source",
+                                "value": "[concat('[', 'Fact].[Sale]')]"
+                            },
+                            {
+                                "name": "Destination",
+                                "value": "wwidw/[fact].[sales].txt"
+                            }
+                        ],
+                        "typeProperties": {
+                            "source": {
+                                "type": "SqlSource"
+                            },
+                            "sink": {
+                                "type": "BlobSink"
+                            },
+                            "enableStaging": false,
+                            "dataIntegrationUnits": 0
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "inp_slqdb_fct_sales",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "out_blob_fct_sales",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/inp_sqldb_dim_customer')]",
+                "[concat(variables('factoryId'), '/datasets/out_blob_dim_customer')]",
+                "[concat(variables('factoryId'), '/datasets/inp_slqdb_dim_date')]",
+                "[concat(variables('factoryId'), '/datasets/out_blob_dim_date')]",
+                "[concat(variables('factoryId'), '/datasets/inp_slqdb_fct_sales')]",
+                "[concat(variables('factoryId'), '/datasets/out_blob_fct_sales')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceDataset_bpb')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "wwimdb",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "cw_tableName": {
+                        "type": "String"
+                    }
+                },
+                "type": "AzureSqlTable",
+                "typeProperties": {
+                    "tableName": {
+                        "value": "@dataset().cw_tableName",
+                        "type": "Expression"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/wwimdb')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DestinationDataset_bpb')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "datablob",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "cw_fileName": {
+                        "type": "String"
+                    }
+                },
+                "type": "AzureBlob",
+                "typeProperties": {
+                    "format": {
+                        "type": "TextFormat",
+                        "columnDelimiter": ",",
+                        "rowDelimiter": "",
+                        "nullValue": "\\N",
+                        "treatEmptyAsNull": true,
+                        "skipLineCount": 0,
+                        "firstRowAsHeader": false
+                    },
+                    "fileName": {
+                        "value": "[parameters('DestinationDataset_bpb_properties_typeProperties_fileName')]",
+                        "type": "Expression"
+                    },
+                    "folderPath": "[parameters('DestinationDataset_bpb_properties_typeProperties_folderPath')]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/datablob')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/inp_slqdb_dim_date')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "wwimdb",
+                    "type": "LinkedServiceReference"
+                },
+                "type": "AzureSqlTable",
+                "structure": [
+                    {
+                        "name": "Date",
+                        "type": "DateTime"
+                    },
+                    {
+                        "name": "Day Number",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Day",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Month",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Short Month",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Calendar Month Number",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Calendar Month Label",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Calendar Year",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Calendar Year Label",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Fiscal Month Number",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Fiscal Month Label",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Fiscal Year",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Fiscal Year Label",
+                        "type": "String"
+                    },
+                    {
+                        "name": "ISO Week Number",
+                        "type": "Int32"
+                    }
+                ],
+                "typeProperties": {
+                    "tableName": "[concat('[', 'Dimension].[Date]')]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/wwimdb')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/out_blob_fct_sales')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "datablob",
+                    "type": "LinkedServiceReference"
+                },
+                "type": "AzureBlob",
+                "typeProperties": {
+                    "format": {
+                        "type": "TextFormat",
+                        "columnDelimiter": ",",
+                        "rowDelimiter": "",
+                        "nullValue": "\\N",
+                        "treatEmptyAsNull": true,
+                        "skipLineCount": 0,
+                        "firstRowAsHeader": false
+                    },
+                    "fileName": "[parameters('out_blob_fct_sales_properties_typeProperties_fileName')]",
+                    "folderPath": "[parameters('out_blob_fct_sales_properties_typeProperties_folderPath')]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/datablob')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/inp_slqdb_fct_sales')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "wwimdb",
+                    "type": "LinkedServiceReference"
+                },
+                "type": "AzureSqlTable",
+                "structure": [
+                    {
+                        "name": "Sale Key",
+                        "type": "Int64"
+                    },
+                    {
+                        "name": "City Key",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Customer Key",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Bill To Customer Key",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Stock Item Key",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Invoice Date Key",
+                        "type": "DateTime"
+                    },
+                    {
+                        "name": "Delivery Date Key",
+                        "type": "DateTime"
+                    },
+                    {
+                        "name": "Salesperson Key",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "WWI Invoice ID",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Description",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Package",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Quantity",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Unit Price",
+                        "type": "Decimal"
+                    },
+                    {
+                        "name": "Tax Rate",
+                        "type": "Decimal"
+                    },
+                    {
+                        "name": "Total Excluding Tax",
+                        "type": "Decimal"
+                    },
+                    {
+                        "name": "Tax Amount",
+                        "type": "Decimal"
+                    },
+                    {
+                        "name": "Profit",
+                        "type": "Decimal"
+                    },
+                    {
+                        "name": "Total Including Tax",
+                        "type": "Decimal"
+                    },
+                    {
+                        "name": "Total Dry Items",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Total Chiller Items",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Lineage Key",
+                        "type": "Int32"
+                    }
+                ],
+                "typeProperties": {
+                    "tableName": "[concat('[', 'Fact].[Sale]')]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/wwimdb')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/inp_sqldb_dim_customer')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "wwimdb",
+                    "type": "LinkedServiceReference"
+                },
+                "type": "AzureSqlTable",
+                "structure": [
+                    {
+                        "name": "Customer Key",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "WWI Customer ID",
+                        "type": "Int32"
+                    },
+                    {
+                        "name": "Customer",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Bill To Customer",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Category",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Buying Group",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Primary Contact",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Postal Code",
+                        "type": "String"
+                    },
+                    {
+                        "name": "Valid From",
+                        "type": "DateTime"
+                    },
+                    {
+                        "name": "Valid To",
+                        "type": "DateTime"
+                    },
+                    {
+                        "name": "Lineage Key",
+                        "type": "Int32"
+                    }
+                ],
+                "typeProperties": {
+                    "tableName": "[concat('[', 'Dimension].[Customer]')]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/wwimdb')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/out_blob_dim_date')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "datablob",
+                    "type": "LinkedServiceReference"
+                },
+                "type": "AzureBlob",
+                "typeProperties": {
+                    "format": {
+                        "type": "TextFormat",
+                        "columnDelimiter": ",",
+                        "rowDelimiter": "",
+                        "nullValue": "\\N",
+                        "treatEmptyAsNull": true,
+                        "skipLineCount": 0,
+                        "firstRowAsHeader": false
+                    },
+                    "fileName": "[parameters('out_blob_dim_date_properties_typeProperties_fileName')]",
+                    "folderPath": "[parameters('out_blob_dim_date_properties_typeProperties_folderPath')]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/datablob')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/out_blob_dim_customer')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "datablob",
+                    "type": "LinkedServiceReference"
+                },
+                "type": "AzureBlob",
+                "typeProperties": {
+                    "format": {
+                        "type": "TextFormat",
+                        "columnDelimiter": ",",
+                        "rowDelimiter": "",
+                        "nullValue": "\\N",
+                        "treatEmptyAsNull": true,
+                        "skipLineCount": 0,
+                        "firstRowAsHeader": false
+                    },
+                    "fileName": "[parameters('out_blob_dim_customer_properties_typeProperties_fileName')]",
+                    "folderPath": "[parameters('out_blob_dim_customer_properties_typeProperties_folderPath')]"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/datablob')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Trigger_bpb')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "runtimeState": "Started",
+                "pipeline": {
+                    "pipelineReference": {
+                        "referenceName": "sqldb2blob",
+                        "type": "PipelineReference"
+                    },
+                    "parameters": {}
+                },
+                "type": "TumblingWindowTrigger",
+                "typeProperties": {
+                    "frequency": "Hour",
+                    "interval": 1,
+                    "startTime": "2018-05-23T16:40:44.427Z",
+                    "delay": "00:00:00",
+                    "maxConcurrency": 50,
+                    "retryPolicy": {
+                        "count": 1,
+                        "intervalInSeconds": 30
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/sqldb2blob')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/wwimdb')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": {
+                        "type": "SecureString",
+                        "value": "[parameters('wwimdb_connectionString')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/datablob')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2017-09-01-preview",
+            "properties": {
+                "type": "AzureStorage",
+                "typeProperties": {
+                    "connectionString": {
+                        "type": "SecureString",
+                        "value": "[parameters('datablob_connectionString')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        }
+    ]
+}

@@ -1,0 +1,39 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "value": "mtcs-dev-adf-v2"
+        },
+        "wwimdb_connectionString": {
+            "value": ""
+        },
+        "datablob_connectionString": {
+            "value": ""
+        },
+        "DestinationDataset_bpb_properties_typeProperties_fileName": {
+            "value": "@dataset().cw_fileName"
+        },
+        "DestinationDataset_bpb_properties_typeProperties_folderPath": {
+            "value": "wwidw"
+        },
+        "out_blob_fct_sales_properties_typeProperties_fileName": {
+            "value": "[concat('[', 'fact].[sales].txt')]"
+        },
+        "out_blob_fct_sales_properties_typeProperties_folderPath": {
+            "value": "wwidw"
+        },
+        "out_blob_dim_date_properties_typeProperties_fileName": {
+            "value": "[concat('[', 'dim].[date].txt')]"
+        },
+        "out_blob_dim_date_properties_typeProperties_folderPath": {
+            "value": "wwidw"
+        },
+        "out_blob_dim_customer_properties_typeProperties_fileName": {
+            "value": "[concat('[', 'dim].[customer].txt')]"
+        },
+        "out_blob_dim_customer_properties_typeProperties_folderPath": {
+            "value": "wwidw"
+        }
+    }
+}
