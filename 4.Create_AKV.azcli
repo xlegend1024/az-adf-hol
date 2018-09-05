@@ -13,6 +13,14 @@ echo "tenantId" $tenantId
 sleep 10
 
 # Create keyvault
+
+## Steps
+
+## 1. Retrieve data factory service identity by copying the value of "SERVICE IDENTITY APPLICATION ID" generated along with your factory. If you use ADF authoring UI, the service identity ID will be shown on the Azure Key Vault linked service creation window; you can also retrieve it from Azure portal, refer to Retrieve data factory service identity.
+## 2. Grant the service identity access to your Azure Key Vault. In your key vault -> Access policies -> Add new -> search this service identity application ID to grant Get permission in Secret permissions dropdown. It allows this designated factory to access secret in key vault.
+## 3. Create a linked service pointing to your Azure Key Vault. Refer to Azure Key Vault linked service.
+## 4. Create data store linked service, inside which reference the corresponding secret stored in key vault. Refer to reference secret stored in key vault.
+
 avkName=akv$RANDOM
 az keyvault create --name $avkName --resource-group $rgName --location $loc
 

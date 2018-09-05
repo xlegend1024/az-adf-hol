@@ -5,7 +5,7 @@
         "factoryName": {
             "type": "string",
             "metadata": "Data Factory Name",
-            "defaultValue": "mtcs-dev-adf-v2"
+            "defaultValue": "adfv2prd"
         },
         "wwimdb_connectionString": {
             "type": "secureString",

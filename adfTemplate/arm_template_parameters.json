@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "factoryName": {
-            "value": "mtcs-dev-adf-v2"
+            "value": "adfv2prd"
         },
         "wwimdb_connectionString": {
             "value": ""
