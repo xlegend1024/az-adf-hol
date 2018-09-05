@@ -4,9 +4,9 @@
 
 # Make sure you're running in right subscription and resource group
 az account show --output tsv --query [name]
-echo $sqlpwd
-echo $subId
-echo $tenantId
+echo "sqlpwd" $sqlpwd
+echo "subId" $subId
+echo "tenantId" $tenantId
 # Pause for 10 second, 
 # If parameter is missing please stop the script and setup parameter 
 sleep 10
@@ -24,4 +24,3 @@ blobConn=$(az storage account show-connection-string --name $blobName --resource
 
 # Create a container
 az storage container create --name $containerName --connection-string $blobConn
-

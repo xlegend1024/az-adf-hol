@@ -9,11 +9,11 @@ tenantId=$(az account show --output tsv --query [tenantId])
 sleep 1
 # set resource group name
 # if you have exsiting one please use the one
-rgName=dev$RANDOM-rg #Save it as ps1
+rgName=dev-$RANDOM-rg #Save it as ps1
 # set azure region
 loc=eastus2
 # set blob name that should be unique 
-blobName=azblobdev$RANDOM # It will be saved it in parameter file
+blobName=blobdev$RANDOM # It will be saved it in parameter file
 # set container name that will be created in Blob
 containerName=sampledata
 # set SQL Server (Instance) name

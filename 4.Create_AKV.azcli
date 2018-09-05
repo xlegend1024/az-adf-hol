@@ -1,0 +1,39 @@
+# This is 4th script
+# if you have not run '0. Set Sub and pwd.azcli' please do now before you run this
+# if you have not run '1. Set Service Names.azcli' please do now before you run this
+# if you have not run '3. Restore SQL DB.azcli' please do now before you run this
+
+# Make sure you're running in right subscription and resource group
+az account show --output tsv --query [name]
+echo "sqlpwd" $sqlpwd
+echo "subId" $subId
+echo "tenantId" $tenantId
+# Pause for 10 second, 
+# If parameter is missing please stop the script and setup parameter 
+sleep 10
+
+echo "spName" $spName
+
+# if sp is exsit remove the sp
+az ad sp delete --id 'http://'$spName
+
+# create sp for AKV
+# Following cli should be run by __resource group owner__ or __subscuription owner__
+# This SP (Service Princial) will be used by ADF to get access to ADLS
+read sp_id sp_password <<< $(az ad sp create-for-rbac -n $spName --role contributor --scopes /subscriptions/$subId/resourceGroups/$rgName --password $sqlpwd --query [appId,password] -o tsv)
+
+# Save parameta as a file in clouddrive so you can access file by other shell env. 
+printf 'blobName='$blobName'
+rgName='$rgName'
+sqlsvrName='$sqlsvrName'
+sp_id='$sp_id'
+sp_password='$sp_password'
+' > $HOME/clouddrive/psParam.txt
+
+# Create keyvault
+avkName=akv$RANDOM
+az keyvault create --name $avkName --resource-group $rgName --location $loc
+
+sqldbconn='"Server=tcp:dev9248.database.windows.net,1433;Database=wwimdb;User ID=sqladmin;Password='$sqlpwd';Encrypt=true;Connection Timeout=30;"'
+
+az keyvault secret set --vault-name $avkName --name 'dev_sqldbconn' --value $sqldbconn
